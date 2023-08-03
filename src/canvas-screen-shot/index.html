@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>canvas-screen-shot</title>
+</head>
+
+<style>
+  html,
+  body {
+    margin: 0;
+  }
+
+  .canvas-container,
+  .canvas-screen-shot {
+    border: 1px solid #ccc;
+    display: none;
+  }
+</style>
+
+<body>
+  <div>
+    <input type="file" id="imageFile" accept="image/*">
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="can"></canvas>
+  </div>
+
+  <div class="canvas-screen-shot">
+    <canvas id="can-screen-shot"></canvas>
+  </div>
+</body>
+<script>
+
+  const oContainer = document.querySelector('.canvas-container');
+  const oScreenShot = document.querySelector('.canvas-screen-shot');
+  const oImageFile = document.querySelector('#imageFile');
+  const oCan = document.querySelector('#can');
+  const oCanScreenShot = document.querySelector('#can-screen-shot');
+  const ctx = oCan.getContext('2d');
+  const screenShowCtx = oCanScreenShot.getContext('2d');
+  const MARK_OPACITY = .5;
+  let screenShotData = [];
+
+  const oImage = new Image();
+
+  let initPos = null;
+
+  init();
+  function init() {
+    bindEvent();
+  }
+
+  function bindEvent() {
+    oImageFile.addEventListener('change', handleFileChange, false);
+    oCan.addEventListener('mousedown', handleCanvasMouseDown, false);
+  }
+
+  function handleCanvasMouseDown(e) {
+    initPos = [e.offsetX, e.offsetY];
+
+    oCan.addEventListener('mousemove', handleCanvasMouseMove, false);
+    oCan.addEventListener('mouseup', handleCanvasMouseUp, false);
+  }
+
+  function handleCanvasMouseMove(e) {
+    const endX = e.offsetX;
+    const endY = e.offsetY;
+
+    const [startX, startY] = initPos;
+
+    const rectWidth = endX - startX;
+    const rectHeight = endY - startY;
+
+    const {width, height} = oCan;
+
+    screenShotData = [startX, startY, rectWidth, rectHeight];
+
+    ctx.clearRect(0, 0, width, height);
+    drawImageMask(0, 0, width, height);
+    drawScreenShot(width, height, rectWidth, rectHeight);
+  }
+
+  function handleCanvasMouseUp() {
+    oCan.removeEventListener('mousemove', handleCanvasMouseMove, false);
+    oCan.removeEventListener('mouseup', handleCanvasMouseUp, false);
+    drawScreenShotImage();
+  }
+
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = e => {
+      const data = e.target.result;
+      oImage.src = data;
+
+      oImage.onload = function() {
+        const { width, height } = this;
+        generateCanvas(oContainer, oCan, width, height);
+        ctx.drawImage(oImage, 0, 0, width, height);
+        drawImageMask(0, 0, width, height, MARK_OPACITY);
+      }
+    }
+  }
+
+  function generateCanvas(container, oCan, width, height) {
+    container.style.width = width + 'px';
+    container.style.height = height + 'px';
+    container.style.display = 'block';
+
+    oCan.width = width;
+    oCan.height = height;
+
+  }
+
+  function drawImageMask(x, y, width, height) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${ MARK_OPACITY })`;
+    ctx.fillRect(x, y, width, height);
+  }
+
+  function drawScreenShot(canWidth, canHeight, rectWidth, rectHeight) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(...initPos, rectWidth, rectHeight);
+    
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.drawImage(oImage, 0, 0, canWidth, canHeight, 0, 0, canWidth, canHeight)
+  }
+
+  function drawScreenShotImage() {
+    const data = ctx.getImageData(...screenShotData);
+    generateCanvas(oScreenShot, oCanScreenShot, screenShotData[2], screenShotData[3]);
+    screenShowCtx.clearRect(...screenShotData);
+    screenShowCtx.putImageData(data, 0, 0);
+  }
+</script>
+
+</html>
