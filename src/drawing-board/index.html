@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .tab-tools {
+      position: fixed;
+      top: 50px;
+      left: 50px;
+    }
+
+    .eraser-circle {
+      position: fixed;
+      border-radius: 50%;
+      border: 1px solid #000;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="tab-tools">
+    <p>
+      <span>颜色选择：</span>
+      <input type="color" id="colorInput" />
+    </p>
+    <p>
+      <span>线条宽度：</span>
+      <input type="range" min="1" max="30" value="1" step="1" id="lineWidthRange" />
+      <span id="lineWidthValue">1</span>
+    </p>
+    <p>
+      <span>清除画布：</span>
+      <button id="clearAllButton">clear all button</button>
+    </p>
+    <p>
+      <span>橡皮擦：</span>
+      <button id="eraserButton">eraser button</button>
+      <input type="range" min="5" max="30" value="5" step="1" id="eraserLineWidthRange" />
+      <span id="eraserLineWidthValue">5</span>
+      <span id="eraserCircle" class="eraser-circle"></span>
+    </p>
+  </div>
+</body>
+
+<script src="./index.js"></script>
+
+</html>
